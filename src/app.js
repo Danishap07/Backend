@@ -10,6 +10,9 @@ import corsOptions from './config/corsOptions';
 import errorHandler from './middlewere/errorHandler';
 import userRoutes from './routes/userRoutes'
 import authRoutes from './routes/authRoutes'
+import productRoutes from './routes/productRoutes'
+import categoryRoutes from './routes/categoryRoutes'
+
 import mongoose from 'mongoose'
 import connectDB from './config/dbConnection';
 
@@ -28,6 +31,8 @@ app.use(cookieParser())
 
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/category', categoryRoutes)
+app.use('/api/products', productRoutes)
 app.use('/api', routes)
 
 app.all('*', (req, res) => {

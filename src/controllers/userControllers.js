@@ -1,6 +1,6 @@
 import usersDB from '../models/users';
 import bcrypt from 'bcryptjs'
-import database from '../middlewere/dbConnection';
+// import database from '../middlewere/dbConnection';
 
 const getAllUsers = async (req, res) => {
     const user = await usersDB.find().select('-password').lean()

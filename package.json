@@ -2,10 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec babel-node src/app",
+    "start": "node src/app.js",
+    "dev": "nodemon --exec babel-node src/app.js",
     "build": "nodemon src/app --exec babel-node "
   },
   "keywords": [],
