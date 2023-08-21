@@ -3,20 +3,20 @@ import express from 'express';
 const router = express.Router();
 import verifyJWT from '../middlewere/verifyJWT';
 
-router.use(verifyJWT)
+// router.use(verifyJWT)
 
-router.route('/').get((req,res) => {
-    if (req.body.user) {
+router.route('/').get(verifyJWT, (req,res) => {
+    if (req.body) {
         console.log("API and body testing successful!", req.body.user)
-        return res.json({
-            status: 200,
+        return res.status(200).json({
+            status: true,
             message: "API and body testing successful!"
         })
     } 
     else {
         console.log("Body passing error")
-        return res.json({
-            status: 404,
+        return res.status(404).json({
+            status: false,
             message: "Body passing error"
         });
 

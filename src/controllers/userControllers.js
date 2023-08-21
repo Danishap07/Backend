@@ -1,3 +1,4 @@
+import { sendMail } from '../middlewere/sendEmail';
 import usersDB from '../models/users';
 import bcrypt from 'bcryptjs'
 // import database from '../middlewere/dbConnection';
@@ -20,22 +21,33 @@ const createNewUsers = async (req, res) => {
     const duplicate = await usersDB.findOne({ username: username }).exec();
     if (duplicate) return res.status(409).json({ message: "Username already exist." });
     try {
+        const generateOTP = (length = 6) => {
+            let passOTP = ''
+            const characters = '0123456789'
+        
+            for (let i = 0; i < length; i++) {
+                const index = Math.floor(Math.random() * characters.length)
+                passOTP += characters[index]
+            }
+        
+            return passOTP
+        }
+        const otp = generateOTP()
+        // console.log(generateOTP())
         const hashed_pwd = await bcrypt.hash(password, 10);
-        const result = await usersDB.create({
+        await usersDB.create({
             "username": username,
             "email": email,
             "password": hashed_pwd,
             "firstname": firstname,
             "lastname": lastname,
-            "city": city,
-            "address": address,
             "mobile_no": mobile_no,
-            "pincode": pincode,
-            "country": country,
-            "state": state,
+            "otp": otp,
+            "otp_expiry": new Date(Date.now() + 10 * 60 * 1000)
             // "roles": roles
         })
-        console.log(result);
+        await sendMail(email, otp, firstname)
+        // console.log(result);
 
         return res.status(200).json({ message: `New User ${username} created successfully.` })
 
@@ -83,11 +95,17 @@ const updateUsers = async (req, res) => {
         return res.status(409).json({ message: "Duplicate username" })
     }
 
-    user.username = username
-    user.roles = roles
+    if(username.length) {
+        user.username = username
+    }
+    // user.roles = roles
 
-    if(password) {
+    if(password.length) {
         user.password = await bcrypt.hash(password, 10)
+    }
+
+    if(firstName.length) {
+        user.firstname = firstName
     }
 
     const updateUser = await user.save()

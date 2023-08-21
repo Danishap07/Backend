@@ -35,21 +35,10 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    address: {
-        type: String
-    },
-    city: {
-        type: String
-    },
-    pincode: {
-        type: String
-    },
-    state: {
-        type: String
-    },
-    country: {
-        type: String
-    }
+    otp: Number,
+    otp_expiry: Date,
+    active: Boolean
+    
 })
 
 export default mongoose.model("User", userSchema)

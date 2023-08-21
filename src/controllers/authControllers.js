@@ -5,20 +5,20 @@ import jwt from 'jsonwebtoken'
 import asyncHandler from 'express-async-handler'
 
 const login = async (req, res) => {
-    const { username, password } = req.body
+    const { email, password } = req.body
 
-    if(!username || !password) {
+    if (!email || !password) {
         return res.status(400).json({ message: "All fields are required." })
     }
 
-    const user = await User.findOne({ username }).lean().exec()
+    const user = await User.findOne({ email }).lean().exec()
 
-    if(!user) {
+    if (!user) {
         return res.status(400).json({ message: "User does not exist." })
     }
 
     const match = await bcrypt.compare(password, user.password)
-    if(!match) {
+    if (!match) {
         return res.status(401).json({ message: "Invalid Password." })
     }
 
@@ -44,49 +44,85 @@ const login = async (req, res) => {
         maxAge: 12 * 30 * 24 * 60 * 60 * 1000
     })
 
-    return res.json({ access_token })
+    return res.status(201).json({
+        message: {
+            token: access_token,
+            username: user.username,
+            email: user.email,
+            roles: user.roles,
+            firstname: user.firstname,
+            lastname: user.lastname
+        }
+    })
+}
+
+const verifyOTP = (req, res) => {
+
+    const { otp } = req.body
+
+
 }
 
 const refresh = (req, res) => {
+    const { otp } = req.body;
+    if(!otp) {
+        return res.status(400).json({ message: "OTP field is required."})
+    }
     const cookies = req.cookies;
-    if(!cookies?.jwt) {
+    if (!cookies?.jwt) {
         return res.status(401).json({ message: "Unauthorized: cookie not found" })
     }
-    
+
     const refresh_token = cookies.jwt
 
     jwt.verify(
-        refresh_token, 
+        refresh_token,
         process.env.REFRESH_TOKEN_SECRET,
         async (err, decoded) => {
-            if(err) return res.status(403).json({ message: "Forbidden: error in verifying jwt" })
-            console.log("hello", decoded)
-            
-            const user = await User.findOne({ username: decoded.username }).lean().exec();
-                if(!user) {
-                    return res.status(401).json({ message: "You are Unauthorized" })
-                }
+            if (err) return res.status(403).json({ message: "Forbidden: error in verifying jwt" })
+            // console.log("hello", decoded)
 
-                const access_token = jwt.sign(
-                    {
-                        "UserInfo": {
-                            "username": user.username,
-                            "roles": user.roles
-                        }
-                    },
-                    process.env.ACCESS_TOKEN_SECRET,
-                    { expiresIn: "1d" }
-                )
-                res.json({ access_token })
+            const user = await User.findOne({ username: decoded.username }).lean().exec();
+            if (!user) {
+                return res.status(401).json({ message: "You are Unauthorized" })
+            }
+            const currentTime = new Date(Date.now())
+            if (otp !== user.otp || user.otp_expiry > currentTime) {
+                return res.status(401).json({ message: "Invalid OTP." })
+            }
+            await User.findByIdAndUpdate(user._id, {
+                $set: { active: true}
+            })
+
+            const access_token = jwt.sign(
+                {
+                    "UserInfo": {
+                        "username": user.username,
+                        "roles": user.roles
+                    }
+                },
+                process.env.ACCESS_TOKEN_SECRET,
+                { expiresIn: "1d" }
+            )
+            return res.status(201).json({
+                message: {
+                    token: access_token,
+                    username: user.username,
+                    email: user.email,
+                    roles: user.roles,
+                    firstname: user.firstname,
+                    lastname: user.lastname
+                }
+            })
         })
-    
+
 }
 
 const logout = (req, res) => {
     const cookies = req.cookies;
-    if(!cookies?.jwt) {
+    if (!cookies?.jwt) {
         return res.sendStatus(204);
-    } 
+    }
     res.clearCookie('jwt', { httpOnly: true, sameSite: "None", secure: true })
     res.json({ message: 'Cookies cleared' })
 
