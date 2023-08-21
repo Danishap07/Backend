@@ -56,13 +56,6 @@ const login = async (req, res) => {
     })
 }
 
-const verifyOTP = (req, res) => {
-
-    const { otp } = req.body
-
-
-}
-
 const refresh = (req, res) => {
     const { otp } = req.body;
     if(!otp) {
@@ -102,7 +95,7 @@ const refresh = (req, res) => {
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,
-                { expiresIn: "1d" }
+                { expiresIn: "90d" }
             )
             return res.status(201).json({
                 message: {
