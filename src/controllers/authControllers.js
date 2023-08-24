@@ -58,9 +58,7 @@ const login = async (req, res) => {
 
 const refresh = (req, res) => {
     const { otp } = req.body;
-    if(!otp) {
-        return res.status(400).json({ message: "OTP field is required."})
-    }
+
     const cookies = req.cookies;
     if (!cookies?.jwt) {
         return res.status(401).json({ message: "Unauthorized: cookie not found" })
@@ -80,12 +78,18 @@ const refresh = (req, res) => {
                 return res.status(401).json({ message: "You are Unauthorized" })
             }
             const currentTime = new Date(Date.now())
-            if (otp !== user.otp || user.otp_expiry > currentTime) {
-                return res.status(401).json({ message: "Invalid OTP." })
+            if (user.active === false) {
+                if (!otp) {
+                    return res.status(400).json({ message: "OTP field is required." })
+                }
+                if (otp !== user.otp || user.otp_expiry > currentTime) {
+                    return res.status(401).json({ message: "Invalid OTP." })
+                }
+                await User.findByIdAndUpdate(user._id, {
+                    $set: { active: true }
+                })
             }
-            await User.findByIdAndUpdate(user._id, {
-                $set: { active: true}
-            })
+            
 
             const access_token = jwt.sign(
                 {
