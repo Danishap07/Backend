@@ -25,16 +25,16 @@ const login = async (req, res) => {
     const access_token = jwt.sign(
         {
             "UserInfo": {
-                "username": user.username,
+                "email": user.email,
                 "roles": user.roles
             }
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: '24h' }
     )
 
     const refresh_token = jwt.sign(
-        { "username": user.username },
+        { "email": user.email },
         process.env.REFRESH_TOKEN_SECRET
     )
     res.cookie('jwt', refresh_token, {
@@ -46,12 +46,13 @@ const login = async (req, res) => {
 
     return res.status(201).json({
         message: {
-            token: access_token,
+            token: refresh_token,
             username: user.username,
             email: user.email,
             roles: user.roles,
             firstname: user.firstname,
-            lastname: user.lastname
+            lastname: user.lastname,
+            active_status: user.active
         }
     })
 }
@@ -59,12 +60,24 @@ const login = async (req, res) => {
 const refresh = (req, res) => {
     const { otp } = req.body;
 
-    const cookies = req.cookies;
-    if (!cookies?.jwt) {
-        return res.status(401).json({ message: "Unauthorized: cookie not found" })
+    const authHeaders = req.headers?.authorization || req.headers.Authorization
+
+    if(!authHeaders?.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "unauthorized" })
     }
 
-    const refresh_token = cookies.jwt
+    const token = authHeaders.split(' ')[1]
+
+    // const cookies = req.cookies;
+    // if (!cookies?.jwt) {
+    //     return res.status(401).json({ message: "Unauthorized: cookie not found" })
+    // }
+    console.log(typeof(token), typeof(process.env.REFRESH_TOKEN_SECRET))
+    if(!token) {
+        return res.status(401).json({ message: "Unauthorized: token not found" })
+    }
+
+    const refresh_token = token
     // const refresh_token = auth_token
     // console.log(refresh_token)
 
@@ -74,9 +87,9 @@ const refresh = (req, res) => {
         async (err, decoded) => {
             console.log("first", err)
             console.log("hello", decoded)
-            if (err) return res.status(403).json({ message: "Forbidden: error in verifying jwt" })
+            if (err) return res.status(403).json({ message: `Forbidden: error in verifying jwt: ${err}` })
 
-            const user = await User.findOne({ username: decoded.username }).lean().exec();
+            const user = await User.findOne({ email: decoded.email }).lean().exec();
             if (!user) {
                 return res.status(401).json({ message: "You are Unauthorized" })
             }
@@ -92,7 +105,6 @@ const refresh = (req, res) => {
                     $set: { active: true }
                 })
             }
-            
 
             const access_token = jwt.sign(
                 {
@@ -111,7 +123,8 @@ const refresh = (req, res) => {
                     email: user.email,
                     roles: user.roles,
                     firstname: user.firstname,
-                    lastname: user.lastname
+                    lastname: user.lastname,
+                    active_status: user.active
                 }
             })
         })
