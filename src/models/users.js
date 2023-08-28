@@ -35,7 +35,7 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    otp: Number,
+    otp: String,
     otp_expiry: Date,
     active: {
         type:Boolean,

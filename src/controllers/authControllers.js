@@ -41,7 +41,7 @@ const login = async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: 12 * 30 * 24 * 60 * 60 * 1000
+        maxAge: 15 * 60 * 1000
     })
 
     return res.status(201).json({
@@ -65,13 +65,16 @@ const refresh = (req, res) => {
     }
 
     const refresh_token = cookies.jwt
+    // const refresh_token = auth_token
+    // console.log(refresh_token)
 
     jwt.verify(
         refresh_token,
         process.env.REFRESH_TOKEN_SECRET,
         async (err, decoded) => {
+            console.log("first", err)
+            console.log("hello", decoded)
             if (err) return res.status(403).json({ message: "Forbidden: error in verifying jwt" })
-            // console.log("hello", decoded)
 
             const user = await User.findOne({ username: decoded.username }).lean().exec();
             if (!user) {

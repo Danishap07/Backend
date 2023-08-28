@@ -32,7 +32,7 @@ const createNewUsers = async (req, res) => {
                 const index = Math.floor(Math.random() * characters.length)
                 passOTP += characters[index]
             }
-        
+            // console.log(typeof(passOTP))
             return passOTP
         }
         const otp = generateOTP()
