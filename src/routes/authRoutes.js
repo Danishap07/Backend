@@ -8,6 +8,8 @@ router.route('/').post(loginLimiter, authControllers.login)
 
 router.route('/refresh').get(authControllers.refresh)
 
+router.route('/verify-otp').post(authControllers.verifyEmail)
+
 router.route('/logout').post(authControllers.logout)
 
 export default router

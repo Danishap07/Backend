@@ -43,6 +43,27 @@ const login = async (req, res) => {
         sameSite: 'None',
         maxAge: 15 * 60 * 1000
     })
+    if(user.active == false) {
+        const generateOTP = (length = 6) => {
+            let passOTP = ''
+            const characters = '0123456789'
+        
+            for (let i = 0; i < length; i++) {
+                const index = Math.floor(Math.random() * characters.length)
+                passOTP += characters[index]
+            }
+            // console.log(typeof(passOTP))
+            return passOTP
+        }
+        const otp = generateOTP()
+        await User.findByIdAndUpdate(user._id, {
+            $set: { 
+                otp: otp, 
+                otp_expiry: new Date(Date.now() + 10 * 60 * 1000) 
+            }
+        })
+        await sendMail(user.email, otp, user.firstname)
+    } 
 
     return res.status(201).json({
         message: {
@@ -98,7 +119,7 @@ const refresh = (req, res) => {
                 if (!otp) {
                     return res.status(400).json({ message: "OTP field is required." })
                 }
-                if (otp !== user.otp || user.otp_expiry > currentTime) {
+                if (otp !== user.otp || user.otp_expiry < currentTime) {
                     return res.status(401).json({ message: "Invalid OTP." })
                 }
                 await User.findByIdAndUpdate(user._id, {
@@ -131,6 +152,28 @@ const refresh = (req, res) => {
 
 }
 
+const verifyEmail = async (req, res) => {
+    const { otp, email } = req.body;
+
+    const user = await User.findOne({ email }).lean().exec()
+    const currentTime = new Date(Date.now())
+    if (user.active === false) {
+        if (!otp) {
+            return res.status(400).json({ message: "OTP field is required." })
+        }
+        if (otp !== user.otp || user.otp_expiry < currentTime) {
+            return res.status(401).json({ message: "Invalid OTP." })
+        }
+        await User.findByIdAndUpdate(user._id, {
+            $set: { active: true }
+        })
+        return res.status(201).json({ message: 'Email verified successfully.' })
+    }
+    else {
+        res.status(200).json({ message: "Email is already verified."})
+    }
+}
+
 const logout = (req, res) => {
     const cookies = req.cookies;
     if (!cookies?.jwt) {
@@ -144,5 +187,6 @@ const logout = (req, res) => {
 export default {
     login,
     refresh,
-    logout
+    logout,
+    verifyEmail
 }
