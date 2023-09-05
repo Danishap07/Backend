@@ -22,4 +22,20 @@ const addCategory = async (req, res) => {
     
 }
 
-export default addCategory
+const getAllCategories = async (req, res) => {
+    try{
+
+        const result = await categories.find()
+        if(result) {
+            res.status(200).json({ status: true, message: result})
+        }
+        else {
+            res.status(201).json({ status: false, message: "No categories to show."})
+        }
+    }
+    catch (err) {
+        res.status(201).json({ status: false, message: `Unable to retrieve data from database: ${err}`})
+    }
+}
+
+export {addCategory, getAllCategories}
