@@ -32,6 +32,18 @@ const createProduct = async (req, res) => {
         return res.status(400).json({status: false, error: "Bad Request", message: "Size is required." })
      }
     try{
+        console.log(images)
+        const image_arr = [
+            { 
+                image_uri: images[0]
+            },
+            {
+                image_uri: images[1]
+            },
+            {
+                image_uri: images[2]
+            }
+        ]
      const result = await products.create({
         "product_name": product_name,
         "actual_price": actual_price,
@@ -42,7 +54,7 @@ const createProduct = async (req, res) => {
         "color": [
             {
                 "_id": color,
-                "images": images
+                "images": image_arr
             }
         ],
         "product_description": product_description,
