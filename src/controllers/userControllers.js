@@ -3,6 +3,24 @@ import usersDB from '../models/users';
 import bcrypt from 'bcryptjs'
 // import database from '../middlewere/dbConnection';
 
+const getUser = async(req,res) => {
+    const { email } = req.body;
+    if(!email) {
+        res.status(200).json({ status: false, message: 'No email has been provided in the request.'})
+    }
+    try{
+
+        const result = await userDB.findOne({ email: email}).exec();
+        if(result) {
+            res.status(200).json({ status: true, message: result})
+        }
+    }
+    catch (err) {
+        res.status(400).json({message: `error: ${err}`})
+    }
+     
+}
+
 const getAllUsers = async (req, res) => {
     const user = await usersDB.find().select('-password').lean()
     if (!user) {
@@ -149,5 +167,6 @@ export default {
     getAllUsers,
     createNewUsers,
     updateUsers,
-    deleteUsers
+    deleteUsers,
+    getUser
 }

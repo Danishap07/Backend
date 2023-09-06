@@ -1,4 +1,5 @@
 import products from "../models/products";
+import categories from "../models/categories";
 // import products from "../models/products";
 
 const createProduct = async (req, res) => {
@@ -86,6 +87,27 @@ const getProduct = async (req, res) => {
     }
 }
 
+const getCategoryProducts = async(req, res) => {
+    const { category_id } = req.params;
+
+    if(!category_id) {
+        res.status(200).json({ status: false, message: "category_id not provided in body."})
+    }
+
+    try {
+        const category_result = await categories.findById({ _id: category_id })
+        console.log(category_result);
+        const result = await products.find({ category_id: category_id});
+        if(!result.length) {
+            res.status(200).json({ status:false, message: `There are no products for category ${category_result.name}` })
+        }
+        res.status(200).json({ status: true, message: result })
+    }
+    catch (err) {
+        res.status(400).json({ status: false, message: `error: ${err.message}`})
+    }
+}
+
 const searchProducts = async(req, res) => {
     console.log("first")
     // const page = parseInt(req.query.search) - 1 || 0;
@@ -111,5 +133,6 @@ const searchProducts = async(req, res) => {
 export {
     createProduct,
     getProduct,
-    searchProducts
+    searchProducts,
+    getCategoryProducts
 }
