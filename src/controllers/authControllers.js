@@ -65,7 +65,7 @@ const login = async (req, res) => {
         await sendMail(user.email, otp, user.firstname)
     } 
 
-    return res.status(201).json({
+    res.status(200).json({
         message: {
             token: refresh_token,
             username: user.username,
