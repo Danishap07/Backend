@@ -37,10 +37,10 @@ const createNewUsers = async (req, res) => {
         return res.status(400).json({ message: "Username and password are required." })
     }
     const duplicate = await usersDB.findOne({ email: email }).exec();
-    if (duplicate) return res.status(409).json({ message: "Email already exist." });
+    if (duplicate) return res.status(200).json({ status:false,  message: "Email already exist." });
 
     const duplicateUser = await usersDB.findOne({ username: username }).exec();
-    if (duplicateUser) return res.status(409).json({ message: "Username already exist." });
+    if (duplicateUser) return res.status(200).json({ message: "Username already exist." });
     try {
         const generateOTP = (length = 6) => {
             let passOTP = ''

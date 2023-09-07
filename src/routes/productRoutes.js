@@ -11,6 +11,7 @@ router.route('/search').get(searchProducts)
 
 router.route('/:product_id').get(getProduct); 
 
+
 router.route('/category/:category_id').get(getCategoryProducts)
 
 export default router
