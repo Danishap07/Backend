@@ -6,9 +6,10 @@ export const sendMail = async (email, otp, firstName) => {
     port: 8000,
     secure: false,
     // secure: true,
+    //sobvytudonbptdtw
     auth: {
       user: "danishp.1999@gmail.com",
-      pass: "sobvytudonbptdtw"
+      pass: "shgahgvhgsvdnj"
     }
   })
   await transport.sendMail({
